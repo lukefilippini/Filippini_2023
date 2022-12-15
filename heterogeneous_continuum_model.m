@@ -112,4 +112,9 @@ for n = 1:Nt % Solve at each time step
     c(:,n+1) = Atilde \ btilde;
 end
 
+% For a disc/sphere node 1 is equivalent to node 2
+if IB.L0 == 0 
+    c = [c(1,:);c];
+end
+
 end
