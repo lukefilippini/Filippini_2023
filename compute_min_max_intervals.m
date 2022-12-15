@@ -20,8 +20,6 @@ function propConfint = compute_min_max_intervals(Ns,d,IB,OB,Np,T,tau,delta,P,L1,
 % Outputs:
 %   propConfit - confidence intervals for prop. remaining at each time step
 %   (2 x no. of time steps) (matrix)
-%   propRecord - prop. of particles remaining at each time step for Ns
-%   simulations (Ns x no. of time steps) (matrix)
 
 if nargin == 9 % if interface and number of partitions are not included
     L1 = 0; parts = 0;
