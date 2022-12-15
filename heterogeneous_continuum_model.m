@@ -24,6 +24,7 @@ dt = T/Nt; % time step size
 Nr1 = length(x1); Nr2 = length(x2); Nr = Nr1 + Nr2 - 1; % no. of nodes
 h1 = diff(x1); h2 = diff(x2); h = [h1 h2]; % node spacing
 x = [x1 x2]; % spatial nodes
+L0 = IB.L0; L2 = OB.L2; % inner and outer boundaries
 a0 = IB.a0; b0 = IB.b0; % inner boundary coefficients
 a1 = OB.a1; b1 = OB.b1; % outer boundary coefficients
 

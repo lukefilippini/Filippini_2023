@@ -43,27 +43,23 @@ for d = 2:3
 
     % Stochastic model
     if IF == 0 % homogeneous problem
-        minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P);
-        minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P);
+        propConfintN1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P);
+        propConfintN2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P);
     else % heterogeneous problem
         if d == 2 % choose the number of partitions
             parts = 36;
         else
             parts = 12;
         end
-        minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
-        minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
+        propConfintN1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
+        propConfintN2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
     end
     
-    % Surrogate models
-    
-
-
     tc = 0:T/Nt:T; % continuum model time points
     ts = 0:tau:T; % stochastic model time points
     tConf = [ts ts(end:-1:1)]; % time points setup for plotting
-    confSetupN1 = [minMaxNp1(1,:) minMaxNp1(2,end:-1:1)]; % confidence intervals (N1 = 50)
-    confSetupN2 = [minMaxNp2(1,:) minMaxNp2(2,end:-1:1)]; % confidence intervals (N2 = 500)
+    confSetupN1 = [propConfintN1(1,:) propConfintN1(2,end:-1:1)]; % confidence intervals (N1 = 50)
+    confSetupN2 = [propConfintN2(1,:) propConfintN2(2,end:-1:1)]; % confidence intervals (N2 = 500)
     
     figure
     hold on
