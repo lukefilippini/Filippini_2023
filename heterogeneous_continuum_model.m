@@ -1,4 +1,4 @@
-function c = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0)
+function [c_avg,c] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0)
 % HETEROGENEOUS_CONTINUUM_MODEL computes the numerical solution for diffusion out of a
 % d-dimensional, radially-symmetric object with two concentric layers using a 
 % finite volume scheme with Crank Nicolson time-stepping. 
@@ -15,6 +15,7 @@ function c = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0)
 %   T - end time (scalar)
 %   c0 - initial condition (scalar or vector)
 % Outputs:
+%   c_avg - spatial average of numerical solution (vector)
 %   c - numerical solution, where the columns correspond to the solution 
 %       at each time point (matrix).
 
@@ -116,5 +117,18 @@ end
 if IB.L0 == 0 
     c = [c(1,:);c];
 end
+
+% Spatial average node spacing 
+dx = (L2 - L0)/(Nr-1);
+x = [x1 x2(2:end)]; % nodes
+
+% Compute spatial average using trapezoidal rule
+c_avg = (x(1)^(d-1)*c(1,:) + x(Nr)^(d-1)*c(Nr,:))/2; % first and last terms
+
+for i = 2:Nr-1 % summation terms
+    c_avg = c_avg + x(i)^(d-1)*c(i,:);
+end
+
+c_avg = d/(L2^d - L0^d) * dx * c_avg; % spatial average
 
 end

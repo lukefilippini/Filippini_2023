@@ -1,4 +1,4 @@
-function [Ps,t] = homogeneous_stochastic_model(d,IB,OB,Np,T,tau,delta,P)
+function Ps = homogeneous_stochastic_model(d,IB,OB,Np,T,tau,delta,P)
 % HOMOGENEOUS_STOCHASTIC_MODEL conducts a random walk simulation for a
 % radially-symmetric object of d dimensions, defined over the radial domain
 % [L0,L1]. For Np particles, each particle takes a step of size delta after 

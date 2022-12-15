@@ -1,4 +1,4 @@
-function c = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
+function [c_avg,c] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
 % NUMERICAL_SOLUTION computes the numerical solution for diffusion out of a
 % d-dimensional, radially-symmetric object using a finite volume scheme
 % with Crank Nicolson time-stepping. 
@@ -14,6 +14,7 @@ function c = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
 %   T - end time (scalar)
 %   c0 - initial condition (scalar or vector)
 % Outputs:
+%   c_avg - spatial average of numerical solution (vector)
 %   c - numerical solution, where the columns correspond to the solution 
 %       at each time point (matrix).
 
@@ -21,6 +22,7 @@ function c = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
 dt = T/Nt; % time step size
 Nr = length(x); % no. of spatial nodes
 h = diff(x); % step sizes
+L0 = IB.L0; L1 = OB.L1; % inner and outer boundaries
 a0 = IB.a0; b0 = IB.b0; % inner boundary coefficients
 a1 = OB.a1; b1 = OB.b1; % outer boundary coefficients
 
@@ -101,5 +103,17 @@ end
 if IB.L0 == 0 
     c = [c(1,:);c];
 end
+
+% Spatial average node spacing 
+dx = (L1 - L0)/(Nr-1);
+
+% Compute spatial average using trapezoidal rule
+c_avg = (x(1)^(d-1)*c(1,:) + x(Nr)^(d-1)*c(Nr,:))/2; % first and last terms
+
+for i = 2:Nr-1 % summation terms
+    c_avg = c_avg + x(i)^(d-1)*c(i,:);
+end
+
+c_avg = d/(L1^d - L0^d) * dx * c_avg; % spatial average
 
 end

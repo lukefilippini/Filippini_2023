@@ -23,7 +23,6 @@ c0 = 1; % initial condition (continuum model)
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
 for d = 2:3
-
     % Test case parameters
     [P,IB,OB,IF] = get_case_parameters(Case,d,delta);
 
@@ -33,19 +32,28 @@ for d = 2:3
     T = 3*log(10)/lambda; % final time (particle concentration 10^(-3))
     if IF == 0
         x = linspace(IB.L0,OB.L1,Nr); % spatial nodes
-        c = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0);
+        c = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0); % numerical solution
     else
         L1 = IF; % interface point
         x1 = IB.L0:0.1:L1; % spatial nodes (L0 <= x <= L1)
         x2 = L1:0.1:OB.L2; % spatial nodes (L1 <= x <= L2)
-        c = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0);
-    end
-
-    if (IB.L0 == 0) && (d > 1) 
-        c = [c(1,:);c];
+        c = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
     end
 
     % Stochastic model
+    if IF == 0 % homogeneous problem
+        propConfint = compute_min_max_intervals(Ns,d,IB,OB,Np,T,tau,delta,P);
+    else % he
+        if d == 2 % choose the number of partitions
+            parts = 36;
+        else
+            parts = 12;
+        end
+
+        propConfint = compute_min_max_intervals(Ns,d,IB,OB,Np,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
+    end
+    
+    
 
 
 end

@@ -30,10 +30,10 @@ if d == 2 % two dimensions (disc, annulus)
         yPosHalf = pos(1,2) + delta/2*sin(thetaAll(k)); % y-pos for half step
         dist = sqrt(xPosHalf.^2 + yPosHalf.^2); % distance from origin
     
-        if dist < l2
-            meanProb = meanProb + P(1)/parts; % within l0 < x < l2
+        if dist < L1
+            meanProb = meanProb + P(1)/parts; % within L0 < x < L1
         else
-            meanProb = meanProb + P(2)/parts; % within l2 < x < l1
+            meanProb = meanProb + P(2)/parts; % within L1 < x < L2
         end
 
         if randThetaProb < meanProb % if angle is chosen, then move the particle
@@ -52,10 +52,10 @@ else % three dimensions (sphere, spherical shell)
             zPosHalf = pos(1,3) + delta/2*cos(phiAll(j)); % z-pos for half step
             dist = sqrt(xPosHalf.^2 + yPosHalf.^2 + zPosHalf.^2); % distance from origin
         
-            if dist < l2
-                meanProb = meanProb + P(1)/parts^2; % within l0 < x <= l2
+            if dist < L1
+                meanProb = meanProb + P(1)/parts^2; % within L0 < x < L1
             else
-                meanProb = meanProb + P(2)/parts^2; % within l2 < x < l1
+                meanProb = meanProb + P(2)/parts^2; % within L1 < x < L2
             end
 
             if randProb < meanProb % if angle is chosen, then move the particle
