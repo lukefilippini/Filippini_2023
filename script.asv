@@ -11,7 +11,7 @@ clc, clear, close all
 % 'G' - disc/sphere with absorbing outer boundary (two layers)
 % 'H' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'G'; % case type
+Case = 'B'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (continuum model)
@@ -20,6 +20,8 @@ Np1 = 50; Np2 = 500; % no. of particles (stochastic model)
 Ns = 100; % no. of simulations (stochastic model)
 delta = 1; tau = 1; % step size and duration (stochastic model)
 c0 = 1; % initial condition (continuum model)
+models = {'single','two','weight'}; % surrogate model types
+c_exp = cell(3,1); % placeholder for surrogate models
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
 for d = 2:3
@@ -28,7 +30,7 @@ for d = 2:3
 
     % Continuum model
     D = P*delta^2/(2*d*tau); % mass diffusivity
-    lambda = d*(d+2)*D(1)*D(2)/((OB.L2^2 + (d+2)*OB.b1/OB.a1*OB.L2)*D(1) + IF^(d+2)/OB.L2^d*(D(2)-D(1))); % single-parameter model
+    [~,lambda] = compute_surrogate_model(d,D,IB,OB,'single',IF); % compute rate parameter for one term exponential model
     T = 3*log(10)/lambda; % final time (particle concentration 10^(-3))
     if IF == 0
         x = linspace(IB.L0,OB.L1,Nr); % spatial nodes
@@ -40,27 +42,43 @@ for d = 2:3
         [c_avg,~] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
     end
 
-
     % Stochastic model
     if IF == 0 % homogeneous problem
-        propConfintN1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P);
-        propConfintN2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P);
+        minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P);
+        minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P);
     else % heterogeneous problem
         if d == 2 % choose the number of partitions
             parts = 36;
         else
             parts = 12;
         end
-        propConfintN1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
-        propConfintN2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
+        minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
+        minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
     end
     
+    % Surrogate models and 
     tc = 0:T/Nt:T; % continuum model time points
+    if isscalar(D) && IB.L0 == 0
+        for k = 1:3 % three surrogate models for homogeneous discs and spheres
+            [c_exp{k},~] = compute_surrogate_model(d,D,IB,OB,models{k},IF,tc);
+        end
+    else
+        for k = 1:2 % two surrogate models for heterogeneous media and homogeneous annuli/spherical shells
+            [c_exp{k},~] = compute_surrogate_model(d,D,IB,OB,models{k},IF,tc);
+        end
+    end
+    
     ts = 0:tau:T; % stochastic model time points
     tConf = [ts ts(end:-1:1)]; % time points setup for plotting
-    confSetupN1 = [propConfintN1(1,:) propConfintN1(2,end:-1:1)]; % confidence intervals (N1 = 50)
-    confSetupN2 = [propConfintN2(1,:) propConfintN2(2,end:-1:1)]; % confidence intervals (N2 = 500)
+    confSetupN1 = [minMaxNp1(1,:) minMaxNp1(2,end:-1:1)]; % confidence intervals (N1 = 50)
+    confSetupN2 = [minMaxNp2(1,:) minMaxNp2(2,end:-1:1)]; % confidence intervals (N2 = 500)
     
+    % Compute mean absolute errors
+    err_1 = mean(abs(c_avg - c_exp{1})); % single parameter exponential model
+    err_2 = mean(abs(c_avg - c_exp{2})); % two parameter exponential model
+    err_3 = mean(abs(c_avg - c_exp{3})); % three parameter exponential model
+
+    % Plotting %
     figure
     hold on
     
@@ -76,8 +94,12 @@ for d = 2:3
     confPlotN2.FaceAlpha = 0.4;
     confPlotN2.EdgeColor = 'none';
     
-    % Spatial average
+    % Spatial average and surrogate models
     plot(tc,c_avg,'LineWidth',4,'Color','#05386B')
+    plot(tc,c_exp{1},'LineWidth',4,'Color','#EF3B2C')
+    plot(tc,c_exp{2},'LineWidth',4,'Color','#41AE76')
+    plot(tc,c_exp{3},'LineWidth',4,'LineStyle','--','Color','#9E9AC8')
     xlim([0,T]), ylim([0,1])
+    
 end
 

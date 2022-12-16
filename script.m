@@ -11,7 +11,7 @@ clc, clear, close all
 % 'G' - disc/sphere with absorbing outer boundary (two layers)
 % 'H' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'G'; % case type
+Case = 'B'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (continuum model)
@@ -20,6 +20,10 @@ Np1 = 50; Np2 = 500; % no. of particles (stochastic model)
 Ns = 100; % no. of simulations (stochastic model)
 delta = 1; tau = 1; % step size and duration (stochastic model)
 c0 = 1; % initial condition (continuum model)
+models = {'single','two','weight'}; % surrogate model types
+c_exp = cell(3,1); % array for surrogate models
+err = cell(3,1); % array for mean absolute errors
+
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
 for d = 2:3
@@ -28,7 +32,7 @@ for d = 2:3
 
     % Continuum model
     D = P*delta^2/(2*d*tau); % mass diffusivity
-    lambda = d*(d+2)*D(1)*D(2)/((OB.L2^2 + (d+2)*OB.b1/OB.a1*OB.L2)*D(1) + IF^(d+2)/OB.L2^d*(D(2)-D(1))); % single-parameter model
+    [~,lambda] = compute_surrogate_model(d,D,IB,OB,'single',IF); % compute rate parameter for one term exponential model
     T = 3*log(10)/lambda; % final time (particle concentration 10^(-3))
     if IF == 0
         x = linspace(IB.L0,OB.L1,Nr); % spatial nodes
@@ -39,7 +43,6 @@ for d = 2:3
         x2 = L1:0.1:OB.L2; % spatial nodes (L1 <= x <= L2)
         [c_avg,~] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
     end
-
 
     % Stochastic model
     if IF == 0 % homogeneous problem
@@ -54,34 +57,48 @@ for d = 2:3
         minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
         minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
     end
-    
-    % Surrogate models
-    
 
-
-    tc = 0:T/Nt:T; % continuum model time points
     ts = 0:tau:T; % stochastic model time points
-    tConf = [ts ts(end:-1:1)]; % time points setup for plotting
-    confSetupN1 = [minMaxNp1(1,:) minMaxNp1(2,end:-1:1)]; % confidence intervals (N1 = 50)
-    confSetupN2 = [minMaxNp2(1,:) minMaxNp2(2,end:-1:1)]; % confidence intervals (N2 = 500)
+    tSetup = [ts ts(end:-1:1)]; % time points setup for plotting
+    minMaxSetupNp1 = [minMaxNp1(1,:) minMaxNp1(2,end:-1:1)]; % confidence intervals (N1 = 50)
+    minMaxSetupNp2 = [minMaxNp2(1,:) minMaxNp2(2,end:-1:1)]; % confidence intervals (N2 = 500)
     
+    % Surrogate model
+    tc = 0:T/Nt:T; % continuum model time points
+    if isscalar(D) && IB.L0 == 0
+        for k = 1:3 % three surrogate models for homogeneous discs and spheres
+            [c_exp{k},~] = compute_surrogate_model(d,D,IB,OB,models{k},IF,tc);
+            err{k} = mean(abs(c_avg - c_exp{k})); % mean absolute error
+        end
+    else
+        for k = 1:2 % two surrogate models for heterogeneous media and homogeneous annuli/spherical shells
+            [c_exp{k},~] = compute_surrogate_model(d,D,IB,OB,models{k},IF,tc);
+            err{k} = mean(abs(c_avg - c_exp{k})); % mean absolute error
+        end
+    end
+    
+    % Plotting %
     figure
     hold on
     
     % Confidence interval for N = 50 particles
-    confPlotN1 = fill(tConf,confSetupN1,'','HandleVisibility','off');
-    confPlotN1.FaceColor = "#758da3";
-    confPlotN1.FaceAlpha = 0.2;
-    confPlotN1.EdgeColor = 'none';
+    minMaxPlotNp1 = fill(tSetup,minMaxSetupNp1,'','HandleVisibility','off');
+    minMaxPlotNp1.FaceColor = "#758da3";
+    minMaxPlotNp1.FaceAlpha = 0.2;
+    minMaxPlotNp1.EdgeColor = 'none';
     
     % Confidence interval for N = 500 particles
-    confPlotN2 = fill(tConf,confSetupN2,'','HandleVisibility','off');
-    confPlotN2.FaceColor = "#758da3";
-    confPlotN2.FaceAlpha = 0.4;
-    confPlotN2.EdgeColor = 'none';
+    minMaxPlotNp2 = fill(tSetup,minMaxSetupNp2,'','HandleVisibility','off');
+    minMaxPlotNp2.FaceColor = "#758da3";
+    minMaxPlotNp2.FaceAlpha = 0.4;
+    minMaxPlotNp2.EdgeColor = 'none';
     
-    % Spatial average
+    % Spatial average and surrogate models
     plot(tc,c_avg,'LineWidth',4,'Color','#05386B')
+    plot(tc,c_exp{1},'LineWidth',4,'Color','#EF3B2C')
+    plot(tc,c_exp{2},'LineWidth',4,'Color','#41AE76')
+    plot(tc,c_exp{3},'LineWidth',4,'LineStyle','--','Color','#9E9AC8')
     xlim([0,T]), ylim([0,1])
+    
 end
 
