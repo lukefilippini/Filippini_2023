@@ -56,7 +56,7 @@ if isscalar(D) % rate parameters for homogeneous media
                         4*beta/L1*(L1^2 - L0^2)^2);
                 else
                     lambda = 15*D*(L1^3 - L0^3)/((L1^3 - L0^3)*(L1^2 + 5*L0^3/L1) - ...
-                        9*L0^3*(L1^2 - L0^2) + 10*beta/L1^2*(L1^3 - L0^3)^2);
+                        9*L0^3*(L1^2 - L0^2) + 5*beta/L1^2*(L1^3 - L0^3)^2);
                 end
             elseif isequal(innerBound,'absorb') && isequal(outerBound,'absorb') % two absorbing boundaries
                 if d == 2

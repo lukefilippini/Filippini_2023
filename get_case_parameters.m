@@ -24,14 +24,7 @@ elseif isequal(Case,'B')
     P = 1; % probability of movement
     P1 = 0.5; % probability of particle absorption at outer boundary
     IB = struct('L0',0,'a0',0,'b0',1,'P0',0,'innerBound','reflect'); % inner bound parameters (disc/sphere must have a reflecting inner "boundary")
-
-    if d == 2
-        b1 = delta / (P1 + pi*delta); % contribution of outer boundary flux term for disc
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    else
-        b1 = delta / (P1 + 2*pi*delta^2); % contribution of outer boundary flux term for sphere
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    end
+    OB = struct('L1',100,'a1',1,'b1',delta/P1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
 elseif isequal(Case,'C')
     P = 1; % probability of movement
     IB = struct('L0',50,'a0',0,'b0',1,'P0',0,'innerBound','reflect'); % inner bound parameters (reflecting inner boundary)
@@ -40,34 +33,20 @@ elseif isequal(Case,'D')
     P = 1; % probability of movement
     P1 = 0.5; % probability of particle absorption at outer boundary
     IB = struct('L0',50,'a0',0,'b0',1,'P0',0,'innerBound','reflect'); % lower bound parameters (reflecting inner boundary)
-
-    if d == 2
-        b1 = delta / (P1 + pi*delta); % contribution of outer boundary flux term for disc
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    else
-        b1 = delta / (P1 + 2*pi*delta^2); % contribution of outer boundary flux term for sphere
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    end
+    OB = struct('L1',100,'a1',1,'b1',delta/P1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
 elseif isequal(Case,'E')
     P = 1; % probability of movement
     IB = struct('L0',50,'a0',1,'b0',0,'P0',0,'innerBound','absorb'); % inner bound parameters (absorbing inner boundary)
     OB = struct('L1',100,'a1',1,'b1',0,'P1',0,'outerBound','absorb'); % outer bound parameters (absorbing outer boundary)
 elseif isequal(Case,'F')
-    P = [0.4,1]; % probability of movement in each layer
+    P = [0.3,1]; % probability of movement in each layer
     IB = struct('L0',0,'a0',0,'b0',1,'P0',0,'innerBound','reflect'); % inner bound parameters (reflecting inner boundary)
-    IF = 40; % interface point
+    IF = 50; % interface point
     OB = struct('L2',100,'a1',1,'b1',0,'P1',0,'outerBound','absorb'); % outer bound parameters (absorbing outer boundary)
 elseif isequal(Case,'G')
-    P = [0.4,1]; % probability of movement in each layer
+    P = [0.3,1]; % probability of movement in each layer
     P1 = 0.5; % probability of particle absorption at the outer boundary
     IB = struct('L0',0,'a0',0,'b0',1,'P0',0,'innerBound','reflect'); % inner bound parameters (reflecting inner boundary)
-    IF = 40; % interface point
-
-    if d == 2
-        b1 = delta / (P1 + pi*delta); % contribution of outer boundary flux term for disc
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    else
-        b1 = delta / (P1 + 2*pi*delta^2); % contribution of outer boundary flux term for sphere
-        OB = struct('L1',100,'a1',1,'b1',b1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5)
-    end
+    IF = 50; % interface point
+    OB = struct('L2',100,'a1',1,'b1',delta/P1,'P1',P1,'outerBound','semi-absorb'); % outer bound parameters (semi-absorbing outer boundary with P1 = 0.5) 
 end

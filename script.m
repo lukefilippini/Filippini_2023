@@ -10,7 +10,7 @@ clc, clear, close all
 % 'F' - disc/sphere with absorbing outer boundary (two layers)
 % 'G' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'A'; % case type
+Case = 'G'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (continuum model)
@@ -30,7 +30,7 @@ for d = 2:3
     % Continuum model
     D = P*delta^2/(2*d*tau); % mass diffusivity
     [~,lambda] = compute_surrogate_model(d,D,IB,OB,'single',IF); % compute rate parameter for one term exponential model
-    T = 3*log(10)/lambda; % final time (particle concentration 10^(-3))
+    T = 2*log(10)/lambda; % final time (particle concentration 10^(-3))
     if IF == 0
         x = linspace(IB.L0,OB.L1,Nr); % spatial nodes
         [c_avg,~] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0); % numerical solution
@@ -140,8 +140,11 @@ for d = 2:3
     
     % Plotting %
     figure
+    set(gcf,'Renderer','Painters');
     hold on
+    box on
     
+
     % Confidence interval for N = 50 particles
     minMaxPlotNp1 = fill(tSetup,minMaxSetupNp1,'','HandleVisibility','off');
     minMaxPlotNp1.FaceColor = "#758da3";
@@ -155,36 +158,46 @@ for d = 2:3
     minMaxPlotNp2.EdgeColor = 'none';
 
     % Spatial average
-    plot(tc,c_avg,'LineWidth',4,'Color','#05386B')
+    plot(tc,c_avg,'LineWidth',6.5,'Color','#05386B')
 
     % Plot surrogate models with parameters
-    plot(tc,c_exp{1},'LineWidth',5.5,'Color','#7B4288')
-    plot(tc,c_exp{2},'LineWidth',5.5,'LineStyle','--','Color','#FF764A')
+    plot(tc,c_exp{1},'LineWidth',6.5,'Color','#7B4288')
+    plot(tc,c_exp{2},'LineWidth',6.5,'LineStyle','--','Color','#FF764A')
     if isscalar(D)
-        plot(tc,c_exp{3},'LineWidth',5.5,'LineStyle','--','Color','#F5BF03')
-        text(0.5*T,0.92,['Case',' ',Case],'FontSize',40,'FontName','FixedWidth')
-        text(0.2*T,0.78,strcat('$\varepsilon_{e_1} = ',err1_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.2*T,0.66,strcat('$\varepsilon_{e_2} = ',err2_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.2*T,0.54,strcat('$\varepsilon_{e_3} = ',err3_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.78,strcat('$\lambda = ',lambda_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.66,strcat('$\lambda_1 = ',lambda1_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.54,strcat('$\lambda_2 = ',lambda2_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.42,strcat('$\theta = ',num2str(theta),'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.3,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        plot(tc,c_exp{3},'LineWidth',6.5,'LineStyle','--','Color','#F5BF03')
+        text(0.6*T,0.93,['Case ',Case],'FontSize',30,'Interpreter','latex')
+        text(0.6*T,0.84,strcat('$\varepsilon_{e_1} = ',err1_str,'$'),...
+            'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.75,strcat('$\varepsilon_{e_2} = ',err2_str,'$'),...
+            'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.66,strcat('$\varepsilon_{e_3} = ',err3_str,'$'),...
+            'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.57,strcat('$\lambda = ',lambda_str,'$'),'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.48,strcat('$\lambda_1 = ',lambda1_str,'$'),'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.39,strcat('$\lambda_2 = ',lambda2_str,'$'),'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.30,strcat('$\theta = ',num2str(theta),'$'),'FontSize',20,'Interpreter','latex')
+        text(0.6*T,0.21,strcat('$T = ',T_str,'$'),'FontSize',20,'Interpreter','latex')
     else
+        text(0.55*T,0.93,['Case ',Case],'FontSize',40,'Interpreter','latex')
+        text(0.55*T,0.83,strcat('$\varepsilon_{e_1} = ',err1_str,'$'),...
+            'FontSize',30,'Interpreter','latex')
+        text(0.55*T,0.73,strcat('$\varepsilon_{e_2} = ',err2_str,'$'),...
+            'FontSize',30,'Interpreter','latex')
+        text(0.55*T,0.63,strcat('$\lambda = ',lambda_str,'$'),'FontSize',30,'Interpreter','latex')
+        text(0.55*T,0.53,strcat('$\lambda_1 = ',lambda1_str,'$'),'FontSize',30,'Interpreter','latex')
+        text(0.55*T,0.43,strcat('$\lambda_2 = ',lambda2_str,'$'),'FontSize',30,'Interpreter','latex')
+        text(0.55*T,0.33,strcat('$T = ',T_str,'$'),'FontSize',30,'Interpreter','latex')
     end
-
-    xlabel('$t$','FontSize',75,'Interpreter','latex')
-    ylabel('$\mathcal{P}\left(t\right)$','FontSize',75,'Interpreter','latex')
+    
+    ylabel('$\mathcal{P}\left(t\right)$','FontSize',20,'Interpreter','latex')
     xlim([0,T]), ylim([0,1])
 
     % Axis
-    set(gca,'FontSize',50,'XTick',[0,T],'YTick',[0,1],'TickLabelInterpreter','latex')
-    ax = gca;
-    ax.XTickLabel{1} = "0"; ax.XTickLabel{2} = "$T$";
-
+    axis square
+    set(gca,'FontSize',50,'XTick',[0,T/2,T],'YTick',[0,1],'TickLabelInterpreter','latex')
+    ax = gca; 
+    ax.XTickLabel{1} = "0"; ax.XTickLabel{2} = "$t$"; ax.XTickLabel{3} = "$T$"; % axis ticks
+    %axLab = get(gca,'XLabel'); axLab.Position = axLab.Position - 0.2;
+    set(gcf,'Position',[1,49,1100,878])
 end
 
