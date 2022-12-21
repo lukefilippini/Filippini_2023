@@ -24,6 +24,7 @@ if nargin == 6
 end
 
 % Setup
+theta = 0; % initialize theta
 L0 = IB.L0; % inner boundary
 a1 = OB.a1; b1 = OB.b1; % outer boundary coefficients
 beta = b1/a1; % measure of flux term dominance

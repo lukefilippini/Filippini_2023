@@ -10,7 +10,7 @@ clc, clear, close all
 % 'F' - disc/sphere with absorbing outer boundary (two layers)
 % 'G' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'A'; % case type
+Case = 'C'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (continuum model)
@@ -23,7 +23,7 @@ models = {'single','two','weight'}; % surrogate model types
 c_exp = cell(3,1); % array for surrogate models
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
-for d = 2:3
+for d = 2:3 
     % Test case parameters
     [P,IB,OB,IF] = get_case_parameters(Case,d,delta);
 
@@ -162,20 +162,17 @@ for d = 2:3
     plot(tc,c_exp{2},'LineWidth',5.5,'LineStyle','--','Color','#FF764A')
     if isscalar(D)
         plot(tc,c_exp{3},'LineWidth',5.5,'LineStyle','--','Color','#F5BF03')
-        text(0.5*T,0.92,['Case',' ',Case],'FontSize',40,'FontName','FixedWidth')
-        text(0.2*T,0.78,strcat('$\varepsilon_{e_1} = ',err1_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.2*T,0.66,strcat('$\varepsilon_{e_2} = ',err2_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.2*T,0.54,strcat('$\varepsilon_{e_3} = ',err3_str,'$'),...
-            'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.78,strcat('$\lambda = ',lambda_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.66,strcat('$\lambda_1 = ',lambda1_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.54,strcat('$\lambda_2 = ',lambda2_str,'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.42,strcat('$\theta = ',num2str(theta),'$'),'FontSize',40,'Interpreter','latex')
-        text(0.6*T,0.3,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        text(0.635*T,0.4,strcat('$T = ',T_str,'$'),'FontSize',50,'Interpreter','latex')
     else
     end
+
+    text(0.625*T,0.3,strcat('$\varepsilon_{e_1} = ',err1_str,'$'),...
+            'FontSize',50,'Interpreter','latex')
+        text(0.617*T,0.55,strcat('$\varepsilon_{e_2} = ',eps2_str,'$'),...
+            'FontSize',50,'Interpreter','latex')
+        text(0.625*T,0.45,strcat('$\lambda = ',lambda_str,'$'),'FontSize',50,'Interpreter','latex')
+        text(0.625*T,0.85,strcat('$\lambda_1 = ',lambda1_str,'$'),'FontSize',50,'Interpreter','latex')
+        text(0.625*T,0.7,strcat('$\lambda_2 = ',lambda2_str,'$'),'FontSize',50,'Interpreter','latex')
 
     xlabel('$t$','FontSize',75,'Interpreter','latex')
     ylabel('$\mathcal{P}\left(t\right)$','FontSize',75,'Interpreter','latex')
