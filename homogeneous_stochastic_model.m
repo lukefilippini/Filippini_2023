@@ -21,7 +21,7 @@ function Ps = homogeneous_stochastic_model(d,IB,OB,Np,T,tau,delta,P)
 
 % Setup
 NSteps = floor(T/tau); % no. of time steps
-t = 0:tau:T; % time points
+
 Ps = zeros(Np,NSteps+1); % particles in system
 Ps(:,1) = 1; % particles are all initially within domain
 pos = zeros(Np,d); % particle positions
