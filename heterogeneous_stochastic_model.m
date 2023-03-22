@@ -69,14 +69,18 @@ for i = 1:Np
         intersect = (dist <= L1 + delta) && (dist >= L1 - delta);
       
         if intersect % Determine whether the particle near the interface should move
-            if d == 2
-                [particleMoves,thetaChoice,~,] = move_near_interface(d,pos(i,:),P,L1,delta,parts,thetaAll);
+            if d == 1
+                [particleMoves,shiftDir,~,] = move_near_interface(d,pos(i),P,L1,delta,parts);
+            elseif d == 2
+                [particleMoves,~,thetaChoice,~,] = move_near_interface(d,pos(i,:),P,L1,delta,parts,thetaAll);
             else
-                [particleMoves,thetaChoice,phiChoice] = move_near_interface(d,pos(i,:),P,L1,delta,parts,thetaAll,phiAll);
+                [particleMoves,~,thetaChoice,phiChoice] = move_near_interface(d,pos(i,:),P,L1,delta,parts,thetaAll,phiAll);
             end
             
             if particleMoves % move the particle
-                if d == 2
+                if d == 1
+                    pos(i) = pos(i) + delta*shiftDir; % new x-coordinate
+                elseif d == 2
                     pos(i,1) = pos(i,1) + delta*cos(thetaChoice); % new x-coordinate
                     pos(i,2) = pos(i,2) + delta*sin(thetaChoice); % new y-coordinate
                 else
@@ -97,15 +101,20 @@ for i = 1:Np
             end
 
             if particleMoves % shift the particle by a step of size delta
-                theta = 2*pi*rand;
-                if d == 2
-                    pos(i,1) = pos(i,1) + delta*cos(theta); % new x-coordinate
-                    pos(i,2) = pos(i,2) + delta*sin(theta); % new y-coordinate
+                if d > 1
+                    theta = 2*pi*rand;
+                    if d == 2
+                        pos(i,1) = pos(i,1) + delta*cos(theta); % new x-coordinate
+                        pos(i,2) = pos(i,2) + delta*sin(theta); % new y-coordinate
+                    else
+                        phi = acos(1 - 2*rand);
+                        pos(i,1) = pos(i,1) + delta*cos(theta)*sin(phi); % new x-coordinate
+                        pos(i,2) = pos(i,2) + delta*sin(theta)*sin(phi); % new y-coordinate
+                        pos(i,3) = pos(i,3) + delta*cos(phi); % new z-coordinate
+                    end
                 else
-                    phi = acos(1 - 2*rand);
-                    pos(i,1) = pos(i,1) + delta*cos(theta)*sin(phi); % new x-coordinate
-                    pos(i,2) = pos(i,2) + delta*sin(theta)*sin(phi); % new y-coordinate
-                    pos(i,3) = pos(i,3) + delta*cos(phi); % new z-coordinate
+                    shift = sign(rand - 0.5);
+                    pos(i) = pos(i) + delta*shift; % new x-coordinate
                 end
             end
 

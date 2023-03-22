@@ -1,4 +1,4 @@
-function [particleMoves,thetaChoice,phiChoice] = move_near_interface(d,pos,P,L1,delta,parts,thetaAll,phiAll)
+function [particleMoves,shiftDir,thetaChoice,phiChoice] = move_near_interface(d,pos,P,L1,delta,parts,thetaAll,phiAll)
 % MOVE_NEAR_INTERFACE moves the particles near the interface (i.e. within a
 % step size of delta of the interface boundary).
 % Inputs:
@@ -12,9 +12,18 @@ function [particleMoves,thetaChoice,phiChoice] = move_near_interface(d,pos,P,L1,
 %   phiAll - angular choices for given partitions (d = 3 only) (vector)
 % Output:
 %   particleMoves - indicator of particle movement (boolean)
+%   shiftDir - shift direction of particle (d = 1) (scalar)
+%   thetaChoice - choice of angle (d = 2,3) (scalar)
+%   phiChoice - choice of angle (d = 3) (scalar)
 
-if nargin == 7
+if nargin == 6
+    thetaAll = 0; phiAll = 0;
+    thetaChoice = 0; phiChoice = 0;
+elseif nargin == 7
+    shiftDir = 0;
     phiAll = 0; phiChoice = 0;
+else
+    shiftDir = 0;
 end
 
 % Setup
@@ -22,7 +31,25 @@ meanProb = 0; % initialize mean probability
 particleMoves = false; % initially assume particle doesn't move
 
 % Calculate probaility of taking a step for each partition
-if d == 2 % two dimensions (disc, annulus)
+if d == 1 % one dimension (line)
+    randShiftProb = rand;
+    shiftDir = 0; shift = [-1 1];
+    for k = 1:2
+        posHalf = pos + delta/2*shift(k);
+
+        if posHalf < l2
+            meanProb = meanProb + P(1)/2;
+        else
+            meanProb = meanProb + P(2)/2;
+        end
+
+        if randShiftProb < meanProb
+            shiftDir = shift(k);
+            particleMoves = true;
+            break
+        end
+    end
+elseif d == 2 % two dimensions (disc, annulus)
     randThetaProb = rand; % initialize probability for assessment against theta choice
     thetaChoice = 0; % initialize angle choice
     for k = 1:parts

@@ -21,13 +21,9 @@ delta = 1; tau = 1; % step size and duration (stochastic model)
 c0 = 1; % initial condition (continuum model)
 models = {'single','two','weight'}; % surrogate model types
 c_exp = cell(3,1); % array for surrogate models
-lambdaStore = zeros(2,6); % storage array for lambda values
-% column 1 - single, columns 2 and 3 - two, columns 4 and 5 - weighted,
-% column 6 - theta
-% row 1 - d = 2, row 2 - d = 3
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
-for d = 2:3
+for d = 1
     % Test case parameters
     [P,IB,OB,IF] = get_case_parameters(Case,delta);
 
@@ -70,7 +66,6 @@ for d = 2:3
         % Single-parameter exponential model
         [c_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'single',IF,tc);
         err = mean(abs(c_avg - c_exp{1})); % mean absolute error
-        lambdaStore(d-1,1) = lambda; % store lambda value
 
         % Scientific notation for plotting %
         lambda_strTemp = sprintf('%0.2e',lambda);
@@ -84,7 +79,6 @@ for d = 2:3
         % Two-parameter exponential model
         [c_exp{2},lambda,~] = compute_surrogate_model(d,D,IB,OB,'two',IF,tc);
         err = mean(abs(c_avg - c_exp{2})); % mean absolute error
-        lambdaStore(d-1,2:3) = lambda; % store lambda values
 
         % Scientific notation for plotting
         lambda1_strTemp = sprintf('%0.2e',lambda(1));
@@ -100,10 +94,8 @@ for d = 2:3
             num2str(str2double(err2_strTemp(6:end))),'}');
         
          % Three-parameter exponential model
-        [c_exp{3},lambda,theta] = compute_surrogate_model(d,D,IB,OB,'weight',IF,tc);
+        [c_exp{3},~,theta] = compute_surrogate_model(d,D,IB,OB,'weight',IF,tc);
         err = mean(abs(c_avg - c_exp{3})); % mean absolute error
-        lambdaStore(d-1,4:5) = lambda; % store lambda values
-        lambdaStore(d-1,6) = theta; % store theta value
     
         % Scientific notation for plotting
         err3_strTemp = sprintf('%0.2e',err);
@@ -114,7 +106,6 @@ for d = 2:3
         % Single-parameter exponential model
         [c_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'single',IF,tc);
         err = mean(abs(c_avg - c_exp{1})); % mean absolute error
-        lambdaStore(d-1,1) = lambda; % store lambda value
 
         % Scientific notation for plotting
         lambda_strTemp = sprintf('%0.2e',lambda);
@@ -128,7 +119,6 @@ for d = 2:3
         % Two-parameter exponential model
         [c_exp{2},lambda,~] = compute_surrogate_model(d,D,IB,OB,'two',IF,tc);
         err = mean(abs(c_avg - c_exp{2})); % mean absolute error
-        lambdaStore(d-1,2:3) = lambda; % store lambda values
 
         % Scientific notation for plotting
         lambda1_strTemp = sprintf('%0.2e',lambda(1));
@@ -158,13 +148,13 @@ for d = 2:3
     % Confidence interval for N = 50 particles
     minMaxPlotNp1 = fill(tSetup,minMaxSetupNp1,'','HandleVisibility','off');
     minMaxPlotNp1.FaceColor = "#758da3";
-    minMaxPlotNp1.FaceAlpha = 0.2;
+    minMaxPlotNp1.FaceAlpha = 0.3;
     minMaxPlotNp1.EdgeColor = 'none';
     
     % Confidence interval for N = 500 particles
     minMaxPlotNp2 = fill(tSetup,minMaxSetupNp2,'','HandleVisibility','off');
     minMaxPlotNp2.FaceColor = "#758da3";
-    minMaxPlotNp2.FaceAlpha = 0.4;
+    minMaxPlotNp2.FaceAlpha = 0.8;
     minMaxPlotNp2.EdgeColor = 'none';
 
     % Spatial average
@@ -175,23 +165,30 @@ for d = 2:3
     plot(tc,c_exp{2},'LineWidth',6.5,'LineStyle','--','Color','#FF764A')
     if isscalar(D)
         plot(tc,c_exp{3},'LineWidth',6.5,'LineStyle','--','Color','#F5BF03')
-        text(0.45*T,0.93,['Case ',Case],'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.82,strcat('$\varepsilon_1 = ',err1_str,'$'),...
+        text(0.4*T,0.9,['Case ',Case],'FontSize',50,'Interpreter','latex')
+        text(0.4*T,0.78,strcat('$\varepsilon_1 = ',err1_str,'$'),...
             'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.71,strcat('$\varepsilon_2 = ',err2_str,'$'),...
+        text(0.4*T,0.66,strcat('$\varepsilon_2 = ',err2_str,'$'),...
             'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.6,strcat('$\varepsilon_3 = ',err3_str,'$'),...
+        text(0.4*T,0.54,strcat('$\varepsilon_3 = ',err3_str,'$'),...
             'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.49,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        text(0.4*T,0.42,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        text(0.05*T,0.1,strcat('$\rm (',lower(Case),')$'),'FontSize',50,'Interpreter','latex')
     else
-        text(0.45*T,0.93,['Case ',Case],'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.82,strcat('$\varepsilon_1 = ',err1_str,'$'),...
+        text(0.4*T,0.9,['Case ',Case],'FontSize',50,'Interpreter','latex')
+        text(0.4*T,0.78,strcat('$\varepsilon_1 = ',err1_str,'$'),...
             'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.71,strcat('$\varepsilon_2 = ',err2_str,'$'),...
+        text(0.4*T,0.66,strcat('$\varepsilon_2 = ',err2_str,'$'),...
             'FontSize',40,'Interpreter','latex')
-        text(0.45*T,0.6,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        text(0.4*T,0.54,strcat('$T = ',T_str,'$'),'FontSize',40,'Interpreter','latex')
+        
+        if isequal(Case,'F')
+            text(0.05*T,0.1,'$\rm (a)$','FontSize',50,'Interpreter','latex')
+        else
+            text(0.05*T,0.1,'$\rm (b)$','FontSize',50,'Interpreter','latex')
+        end
     end
-    
+
     ylabel('$\mathcal{P}\left(t\right)$','FontSize',20,'Interpreter','latex')
     xlim([0,T]), ylim([0,1])
 
@@ -200,10 +197,7 @@ for d = 2:3
     set(gca,'FontSize',50,'XTick',[0,T/2,T],'YTick',[0,1],'TickLabelInterpreter','latex')
     ax = gca; 
     ax.XTickLabel{1} = "0"; ax.XTickLabel{2} = "$t$"; ax.XTickLabel{3} = "$T$"; % axis ticks
-    axLab = get(gca,'XLabel'); axLab.Position = axLab.Position - 0.2;
-    aragonite = [241/255,243/255,241/255];
-    %set(gca,'Color',aragonite)
-    %set(gcf,'Color',aragonite)
+    %axLab = get(gca,'XLabel'); axLab.Position = axLab.Position - 0.2;
     set(gcf,'Position',[1,49,1100,878])
 end
 

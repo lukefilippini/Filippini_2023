@@ -1,4 +1,4 @@
-function [c_exp,lambda,theta] = compute_surrogate_model(d,D,IB,OB,model,IF,tc)
+       function [c_exp,lambda,theta] = compute_surrogate_model(d,D,IB,OB,model,IF,tc)
 % COMPUTE_LAMBDA computes the rate parameter of a surrogate model for
 % diffusion-controlled transport in a d-dimensional radially-symmetric 
 % geometry with inner and boundary parameters specified in IB and OB, 
@@ -43,8 +43,8 @@ if isscalar(D) % rate parameters for homogeneous media
             lambda(2) = d*(d+2)*D/(L1^2 + (d+2)*beta*L1 - L1^2*sqrt(d/(d+4)));
         else
             lambda = zeros(2,1); % two parameters
-            tau = (d+4)/(d*L1^4)*(((6-d)*L1^2 + (d+2)*(d+6)*beta*L1)/(d+6))^2;
-            theta = 1/2 + 1/2*sqrt(tau/(tau+4)); % weighting parameter
+            omega = (d+4)/(d*L1^4)*(((6-d)*L1^2 + (d+2)*(d+6)*beta*L1)/(d+6))^2;
+            theta = 1/2 + 1/2*sqrt(omega/(omega+4)); % weighting parameter
             lambda(1) = d*(d+2)*D/(L1^2 + (d+2)*beta*L1 + L1^2*sqrt((1-theta)/theta*d/(d+4)));
             lambda(2) = d*(d+2)*D/(L1^2 + (d+2)*beta*L1 - L1^2*sqrt(theta/(1-theta)*d/(d+4)));
         end
@@ -66,74 +66,76 @@ if isscalar(D) % rate parameters for homogeneous media
             end
 
             if isequal(innerBound,'reflect') % absorbing or semi-absorbing outer boundary
-                if d == 2
-                    kappa1 = L0^4*L1^2*(L1^2 - L0^2); 
-                    kappa2 = (L1^2 - L0^2)^3*(7*L0^2 - L1^2);
+                if d == 1
+                    if isequal(model,'weight')
+                        omega = 5*(5*(L1-L0) + 21*beta)^2/(49*(L1-L0)^2);
+                        theta = 1/2 + 1/2*sqrt(omega/(omega+4));
+                    end
+                    lambda(1) = 3*D/((L1-L0)*(L1-L0+3*beta) + (L1-L0)^2*sqrt((1-theta)/(5*theta)));
+                    lambda(2) = 3*D/((L1-L0)*(L1-L0+3*beta) - (L1-L0)^2*sqrt(theta/(5*(1-theta))));
+                elseif d == 2
+                    kappa21 = -(L1^2 - L0^2)^3*(7*L0^2 - L1^2) - ...
+                        24*L0^4*L1^2*log(L1/L0)*(2*L0^2*log(L1/L0) + L0^2 - L1^2);
 
                     if isequal(model,'weight') % three-parameter model
-                        kappa3 = L0^6*L1^2*(L1^2 - L0^2)*(L1*(5*L0^2 + L1^2) - 4*beta*(L1^2 - L0^2));
-                        kappa4 = L0^8*L1^3*(L0^2 + L1^2);
-                        kappa5 = L0^6*L1*(L1^2 - L0^2)^2*(12*L1^2 - 7*L0^2) - ...
-                            24*beta*L0^4*L1^2*(L1^6 - 3*L0^2*L1^4 + 3*L0^4*L1^2 - L0^6);
-                        kappa6 = (L1^2 - L0^2)^3*(L1*(145*L0^6 - 83*L0^4*L1^2 + 25*L0^2*L1^4 - 3*L1^6) - ...
-                            24*beta*(L1^2 - L0^2)^2*(L1^2 - 7*L0^2));
-                        tau = (288*kappa3*log(L1/L0)^2 - 1152*kappa4*log(L1/L0)^3 - ...
-                            24*kappa5*log(L1/L0) - kappa6)^2/(12*L1^2*...
-                            (24*kappa1*log(L1/L0) - 48*L0^6*L1^2*log(L1/L0)^2 - kappa2)^3);
-                        theta = 1/2 + 1/2*sqrt(tau/(tau+4));
+                        kappa22 = L0^6*L1^2*(L1^2-L0^2)*(L1*(5*L0^2+L1^2)-4*beta*(L1^2-L0^2));
+                        kappa23 = L0^4*L1*(L1^2-L0^2)^2*(7*L0^4-12*L0^2*L1^2+24*beta*L1*(L1^2-L0^2));
+                        kappa24 = (L1^2-L0^2)^3*(L1*(3*L1^6-25*L0^2*L1^4+83*L0^4*L1^2-145*L0^6) - ...
+                            24*beta*(7*L0^2-L1^2)*(L1^2-L0^2)^2);
+                        omega = (288*kappa22*log(L1/L0)^2 - 1152*L0^8*L1^3*(L0^2+L1^2)*log(L1/L0)^3 + ...
+                            24*kappa23*log(L1/L0) + kappa24)^2/(12*L1^2*kappa21^3);
+                        theta = 1/2 + 1/2*sqrt(omega/(omega+4));
                     end
 
-                    lambda(1) = 8*D*(L1^2 - L0^2)/(L1^4 - 4*L0^2*L1^2 + L0^4*(4*log(L1/L0) + 3) + ...
-                        4*beta/L1*(L1^2 - L0^2)^2 + 1/sqrt(3)*sqrt((1-theta)/theta*(24*kappa1*log(L1/L0) - ...
-                        48*L0^6*L1^2*log(L1/L0)^2 - kappa2)));
-                    lambda(2) = 8*D*(L1^2 - L0^2)/(L1^4 - 4*L0^2*L1^2 + L0^4*(4*log(L1/L0) + 3) + ...
-                        4*beta/L1*(L1^2 - L0^2)^2 - 1/sqrt(3)*sqrt(theta/(1-theta)*(24*kappa1*log(L1/L0) - ...
-                        48*L0^6*L1^2*log(L1/L0)^2 - kappa2)));
+                    lambda(1) = 8*D*(L1^2 - L0^2)/((L1^2 - L0^2)*(L1^2 - 3*L0^2) + 4*L0^4*log(L1/L0) + ...
+                        4*beta/L1*(L1^2 - L0^2)^2 + 1/sqrt(3)*sqrt((1-theta)/theta*kappa21));
+                    lambda(2) = 8*D*(L1^2 - L0^2)/((L1^2 - L0^2)*(L1^2 - 3*L0^2) + 4*L0^4*log(L1/L0) + ...
+                        4*beta/L1*(L1^2 - L0^2)^2 - 1/sqrt(3)*sqrt(theta/(1-theta)*kappa21));
                 else
+                    kappa31 = L1^4 + 6*L0*L1^3 + 21*L0^2*L1^2 + 41*L0^3*L1 + 36*L0^4;
                     if isequal(model,'weight')
-                        kappa1 = L1*(L1-L0)*(10*L0^2 + 4*L0*L1 + L1^2)*(54*L0^5 + 100*L0^4*L1 + 50*L0^3*L1^2 + ...
-                            15*L0^2*L1^3 + 5*L0*L1^4 + L1^5);
-                        kappa2 = (L0^2 + L0*L1 + L1^2)^2*(36*L0^4 + 41*L0^3*L1 + 21*L0^2*L1^2 + ...
-                            6*L0*L1^3 + L1^4);
-                        tau = 7*(kappa1 + 15*beta*kappa2)^2/(27*L1^4*(L1-L0)^2*(36*L0^4 + 41*L0^3*L1 + ...
-                            21*L0^2*L1^2 + 6*L0*L1^3 + L1^4)^3);
-                        theta = 1/2 + 1/2*sqrt(tau/(tau+4));
+                        kappa32 = L1^5 + 5*L0*L1^4 + 15*L0^2*L1^3 + 50*L0^3*L1^2 + 100*L0^4*L1 + 54*L0^5;
+                        omega = 7*(L1*(L1-L0)^3*(L1^2+4*L0*L1+10*L0^2)*kappa32 + ...
+                            15*beta*kappa31*(L1^3-L0^3)^2)^2/(27*L1^4*(L1-L0)^6*kappa31^3);
+                        theta = 1/2 + 1/2*sqrt(omega/(omega+4));
                     end
                     lambda(1) = 15*D*(L1^3 - L0^3)/((L1 - L0)^3*(L1^2 + 3*L0*L1 + 6*L0^2 + 5*L0^3/L1) + ...
-                        5*beta/L1^2*(L1^3 - L0^3)^2 + (L1 - L0)^3*sqrt(3/7)*sqrt((1-theta)/theta*(L1^4 + 6*L0*L1^3 + ...
-                        21*L0^2*L1^2 + 41*L0^3*L1 + 36*L0^4)));
+                        5*beta/L1^2*(L1^3 - L0^3)^2 + (L1 - L0)^3*sqrt(3/7)*sqrt((1-theta)/theta*kappa31));
                     lambda(2) = 15*D*(L1^3 - L0^3)/((L1 - L0)^3*(L1^2 + 3*L0*L1 + 6*L0^2 + 5*L0^3/L1) + ...
-                        5*beta/L1^2*(L1^3 - L0^3)^2 - (L1 - L0)^3*sqrt(3/7)*sqrt(theta/(1-theta)*(L1^4 + 6*L0*L1^3 + ...
-                        21*L0^2*L1^2 + 41*L0^3*L1 + 36*L0^4)));
+                        5*beta/L1^2*(L1^3 - L0^3)^2 - (L1 - L0)^3*sqrt(3/7)*sqrt(theta/(1-theta)*kappa31));
                 end
             elseif isequal(innerBound,'absorb') && isequal(outerBound,'absorb') % two absorbing boundaries
-                if d == 2
+                if d == 1
                     if isequal(model,'weight')
-                        kappa1 = (L1^2 - L0^2)^2*(19*L0^4 + 46*L0^2*L1^2 + 19*L1^4);
-                        kappa2 = (L1^2 - L0^2)^3*(L0^2 + L1^2);
-                        tau = (6*(L1^8 - L0^8)*log(L1/L0)^3 - kappa1*log(L1/L0)^2 + ...
-                            18*kappa2*log(L1/L0))^2/(48*(L1^2 - L0^2)^5*((L1^2 - L0^2)*...
-                            (log(L1/L0)^2 + 3) - 3*(L0^2 + L1^2)*log(L1/L0))^3);
-                        theta = 1/2 + 1/2*sqrt(tau/(tau+4));
+                        theta = 1/2 + 1/2*sqrt(125/321);
+                    end
+                    lambda(1) = 12*D/((L1-L0)^2 * (1 + sqrt((1-theta)/(5*theta))));
+                    lambda(2) = 12*D/((L1-L0)^2 * (1 - sqrt(theta/(5*(1-theta)))));
+                elseif d == 2
+                    xi21 = 3*(L1^2 - L0^2)^2 - 3*(L1^4 - L0^4)*log(L1/L0) + ...
+                        (L1^2 - L0^2)^2*log(L1/L0)^2;
+                    if isequal(model,'weight')
+                        xi22 = (L1^2-L0^2)*(19*L0^4 + 46*L0^2*L1^2 + 19*L1^4);
+                        omega = log(L1/L0)^2*(18*(L0^2+L1^2)*(L1^2-L0^2)^2 + ...
+                            6*(L0^2+L1^2)*(L0^4+L1^4)*log(L1/L0)^2 - xi22*log(L1/L0))^2/(48*xi21^3);
+                        theta = 1/2 + 1/2*sqrt(omega/(omega+4));
                     end
 
                     lambda(1) = 8*D*log(L1/L0)/((L0^2 + L1^2)*log(L1/L0) - (L1^2 - L0^2) + ...
-                        (L1^2 - L0^2)/sqrt(3)*sqrt((1-theta)/theta*(log(L1/L0)^2 - ...
-                        3*(L0^2 + L1^2)/(L1^2 - L0^2)*log(L1/L0) + 3)));
+                        1/sqrt(3)*sqrt((1-theta)/theta*xi21));
                     lambda(2) = 8*D*log(L1/L0)/((L0^2 + L1^2)*log(L1/L0) - (L1^2 - L0^2) - ...
-                        (L1^2 - L0^2)/sqrt(3)*sqrt(theta/(1-theta)*(log(L1/L0)^2 - ...
-                        3*(L0^2 + L1^2)/(L1^2 - L0^2)*log(L1/L0) + 3)));
+                        1/sqrt(3)*sqrt(theta/(1-theta)*xi21));
                 else
-                    eta = 16*L0^4 + 26*L0^3*L1 + 21*L0^2*L1^2 + 26*L0*L1^3 + 16*L1^4;
+                    xi31 = 16*L0^4 + 26*L0^3*L1 + 21*L0^2*L1^2 + 26*L0*L1^3 + 16*L1^4;
                     if isequal(model,'weight')
-                        tau = 7*(64*L0^6 + 471*L0^5*L1 + 780*L0^4*L1^2 + 745*L0^3*L1^3 + ...
-                            780*L0^2*L1^4 + 471*L0*L1^5 + 64*L1^6)^2/(27*eta^3);
-                        theta = 1/2 + 1/2*sqrt(tau/(tau+4));
+                        omega = 7*(64*L0^6 + 471*L0^5*L1 + 780*L0^4*L1^2 + 745*L0^3*L1^3 + ...
+                            780*L0^2*L1^4 + 471*L0*L1^5 + 64*L1^6)^2/(27*xi31^3);
+                        theta = 1/2 + 1/2*sqrt(omega/(omega+4));
                     end
                     lambda(1) = 60*D*(L1^3 - L0^3)/((L1 - L0)^3*(4*L0^2 + 7*L0*L1 + ...
-                        4*L1^2 + sqrt(3/7)*sqrt((1-theta)/theta*eta)));
+                        4*L1^2 + sqrt(3/7)*sqrt((1-theta)/theta*xi31)));
                     lambda(2) = 60*D*(L1^3 - L0^3)/((L1 - L0)^3*(4*L0^2 + 7*L0*L1 + ...
-                        4*L1^2 - sqrt(3/7)*sqrt(theta/(1-theta)*eta)));
+                        4*L1^2 - sqrt(3/7)*sqrt(theta/(1-theta)*xi31)));
                 end
             end
         end

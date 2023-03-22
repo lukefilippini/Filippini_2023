@@ -33,14 +33,18 @@ outerBound = OB.outerBound; % outer boundary condition
 
 % Initial distribution
 r = (rand(Np,1)*(L1^d - L0^d) + L0^d).^(1/d); % initial radial position
-theta = 2*pi*rand; % initialize all angular positions
-if d == 3
-    phi = acos(1 - 2*rand); % initialize phi
-    pos(:,1) = r .* cos(theta) .* sin(phi); % initial x-coordinates
-    pos(:,2) = r .* sin(theta) .* sin(phi); % initial y-coordinates
-    pos(:,3) = r .* cos(phi); % initial z-coordinates
+if d > 1
+    theta = 2*pi*rand; % initialize all angular positions
+    if d == 3
+        phi = acos(1 - 2*rand); % initialize phi
+        pos(:,1) = r .* cos(theta) .* sin(phi); % initial x-coordinates
+        pos(:,2) = r .* sin(theta) .* sin(phi); % initial y-coordinates
+        pos(:,3) = r .* cos(phi); % initial z-coordinates
+    else
+        pos(:,1) = r .* cos(theta); pos(:,2) = r .* sin(theta); % initialize particle positions
+    end
 else
-    pos(:,1) = r .* cos(theta); pos(:,2) = r .* sin(theta); % initialize particle positions
+    pos(:) = r; % initialize particle positions
 end
 
 % Random walk simulation 
@@ -48,15 +52,20 @@ for i = 1:Np % for each particle
     for j = 1:NSteps % for each time step
         particleMoves = P > rand; % particle moves (1) or stays still (0)
         if particleMoves
-            theta = 2*pi*rand;
-            if d == 2
-                pos(i,1) = pos(i,1) + delta*cos(theta); % new x-coordinate (d = 2)
-                pos(i,2) = pos(i,2) + delta*sin(theta); % new y-coordinate (d = 2)
+            if d > 1
+                theta = 2*pi*rand;
+                if d == 2
+                    pos(i,1) = pos(i,1) + delta*cos(theta); % new x-coordinate (d = 2)
+                    pos(i,2) = pos(i,2) + delta*sin(theta); % new y-coordinate (d = 2)
+                else
+                    phi = acos(1 - 2*rand);
+                    pos(i,1) = pos(i,1) + delta*cos(theta)*sin(phi); % new x-coordinate (d = 3)
+                    pos(i,2) = pos(i,2) + delta*sin(theta)*sin(phi); % new y-coordinate (d = 3)
+                    pos(i,3) = pos(i,3) + delta*cos(phi); % new z-coordinate (d = 3)
+                end
             else
-                phi = acos(1 - 2*rand);
-                pos(i,1) = pos(i,1) + delta*cos(theta)*sin(phi); % new x-coordinate (d == 3)
-                pos(i,2) = pos(i,2) + delta*sin(theta)*sin(phi); % new y-coordinate (d == 3)
-                pos(i,3) = pos(i,3) + delta*cos(phi); % new z-coordinate (d == 3)
+                shift = sign(rand - 0.5);
+                pos(i) = pos(i) + delta*shift; % new x-coordinate (d = 1)
             end
         end
 
@@ -68,7 +77,9 @@ for i = 1:Np % for each particle
             Ps(i,j+1) = atBoundary(outerBound,P1); % determine whether the particle is absorbed or not
             
             if isequal(outerBound,'reflect')
-                if d == 2
+                if d == 1
+                    pos(i) = pos(i) - delta; % shift back to the left
+                elseif d == 2
                     pos(i,1) = pos(i,1) - delta*cos(theta); % keep original x-coordinate
                     pos(i,2) = pos(i,2) - delta*sin(theta); % keep original y-coordinate
                 else

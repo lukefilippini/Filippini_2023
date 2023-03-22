@@ -49,9 +49,9 @@ A(1,2) = D*e(1)^(d-1)/(V(1)*x(1)^(d-1)*h(1));
 for i = 2:Nr-1
     A(i,i-1) = D*w(i)^(d-1) / (V(i)*x(i)^(d-1)*h(i-1));
 
-    if (i == 2) && (x(1) == 0) % for discs and spheres there is no inner boundary
+    if (i == 2) && (x(1) == 0) && (d > 1) % for discs and spheres there is no inner boundary
         A(i,i) = -D/(V(i)*x(i)^(d-1)) * e(i)^(d-1)/h(i);
-    else % for annuli and spherical shells there is an inner boundary
+    else % for annuli and spherical shells (and slabs) there is an inner boundary
         A(i,i) = -D/(V(i)*x(i)^(d-1)) * (w(i)^(d-1)/h(i-1) + e(i)^(d-1)/h(i));
     end
 
@@ -63,7 +63,7 @@ A(Nr,Nr-1) = (D*w(Nr)^(d-1)) / (V(Nr)*x(Nr)^(d-1)*h(Nr-1));
 A(Nr,Nr) = -D/(V(Nr)*x(Nr)^(d-1)) * (w(Nr)^(d-1)/h(Nr-1) + x(Nr)^(d-1)*a1/b1);
 
 % Solve for c (Crank-Nicolson Time Stepping) %
-if x(1) == 0 % for a disc or sphere, solve for nodes 2,...,Nr only (node 1 is equal to node 2)
+if (x(1) == 0) && (d > 1) % for a disc or sphere, solve for nodes 2,...,Nr only (node 1 is equal to node 2)
     A = A(2:Nr,2:Nr);
     c = zeros(Nr-1,Nt+1); % solution matrix
     I = eye(Nr-1); % identity matrix
@@ -100,7 +100,7 @@ for n = 1:Nt % Solve at each time step
 end
 
 % For a disc/sphere node 1 is equivalent to node 2
-if IB.L0 == 0 
+if (IB.L0 == 0) && (d > 1)
     c = [c(1,:);c];
 end
 
