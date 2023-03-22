@@ -1,9 +1,8 @@
-function [P,IB,OB,IF] = get_case_parameters(Case,d,delta)
+function [P,IB,OB,IF] = get_case_parameters(Case,delta)
 % GET_CASE_PARAMETERS returns the parameters associated with case 'A', 'B',
 % 'C', 'D', 'E', 'F' or 'G'.
 % Inputs:
 %   Case - test case (string)
-%   d - no. of dimensions (scalar)
 %   delta - step size (scalar)
 % Outputs:
 %   P - probability of movement (scalar or array)

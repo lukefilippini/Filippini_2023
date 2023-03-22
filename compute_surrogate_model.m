@@ -51,19 +51,13 @@ if isscalar(D) % rate parameters for homogeneous media
     else % rate parameters for annulus/spherical shell
         if isequal(model,'single') % single parameter exponential model
             if isequal(innerBound,'reflect') % absorbing or semi-absorbing outer boundary
-                if d == 2
-                    lambda = 8*D*(L1^2 - L0^2)/(L1^4 - 4*L0^2*L1^2 + L0^4*(4*log(L1/L0) + 3) + ...
-                        4*beta/L1*(L1^2 - L0^2)^2);
-                else
-                    lambda = 15*D*(L1^3 - L0^3)/((L1^3 - L0^3)*(L1^2 + 5*L0^3/L1) - ...
-                        9*L0^3*(L1^2 - L0^2) + 5*beta/L1^2*(L1^3 - L0^3)^2);
-                end
+                lambda = d*(d+2)*D*(L1^d - L0^d)/(L1^(d+2) - (d+2)*L0^d*(L1^2-L0^2) + ...
+                    (d+2)*L0^(2*d)*integral(@(r) 1./r.^(d-1),L0,L1) - L0^(d+2) + ...
+                    (d+2)*beta*(L1^d-L0^d)^2/L1^(d-1));
             elseif isequal(innerBound,'absorb') && isequal(outerBound,'absorb') % two absorbing boundaries
-                if d == 2
-                    lambda = 8*D*log(L1/L0)/((L0^2 + L1^2)*log(L1/L0) - (L1^2 - L0^2));
-                else
-                    lambda = 60*D*(L1^3 - L0^3)/((L1 - L0)^3 * (4*L0^2 + 7*L0*L1 + 4*L1^2));
-                end
+                lambda = 4*d*(d+2)*D*integral(@(r) 1./r.^(d-1),L0,L1)*...
+                    (L1^d - L0^d)/(4*(L1^(d+2) - L0^(d+2))*integral(@(r) 1./r.^(d-1),L0,L1) - ...
+                    (d+2)*(L1^2-L0^2)^2);
             end
         else % two parameter or three-parameter exponential model
             lambda = zeros(2,1); % two parameters
