@@ -38,8 +38,8 @@ for d = 1
         [Pc,~] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0); % numerical solution
     else
         L1 = IF; % interface point
-        x1 = linspace(IB.L0,L1,ceil(Nr*L1/100)); % spatial nodes (L0 <= x <= L1)
-        x2 = linspace(L1,OB.L2,ceil(Nr*(L2-L1)/100)); % spatial nodes (L1 <= x <= L2)
+        x1 = linspace(IB.L0,L1,ceil(Nr*L1/OB.L2)); % spatial nodes (L0 <= x <= L1)
+        x2 = linspace(L1,OB.L2,ceil(Nr*(OB.L2-L1)/OB.L2)); % spatial nodes (L1 <= x <= L2)
         [Pc,~] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
     end
     fprintf("Continuum model: ")
