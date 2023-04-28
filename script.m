@@ -10,7 +10,7 @@ clc, clear, close all
 % 'F' - disc/sphere with absorbing outer boundary (two layers)
 % 'G' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'E'; % case type
+Case = 'A'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (continuum model)
@@ -19,8 +19,8 @@ Np1 = 50; Np2 = 500; % no. of particles (stochastic model)
 Ns = 100; % no. of simulations (stochastic model)
 delta = 1; tau = 1; % step size and duration (stochastic model)
 c0 = 1; % initial condition (continuum model)
-models = {'single','two','weight'}; % surrogate model types
-c_exp = cell(3,1); % array for surrogate models
+models = {'one-term','two-term','weighted'}; % surrogate model types
+s_exp = cell(3,1); % array for surrogate models
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
 for d = 1
@@ -28,20 +28,24 @@ for d = 1
     [P,IB,OB,IF] = get_case_parameters(Case,delta);
 
     % Continuum model
+    tic
     D = P*delta^2/(2*d*tau); % mass diffusivity
-    [~,lambda] = compute_surrogate_model(d,D,IB,OB,'single',IF); % compute rate parameter for one term exponential model
+    [~,lambda] = compute_surrogate_model(d,D,IB,OB,'one-term',IF); % compute rate parameter for one term exponential model
     T = 2*log(10)/lambda; % final time (particle concentration 10^(-3))
     if IF == 0
         x = linspace(IB.L0,OB.L1,Nr); % spatial nodes
-        [c_avg,~] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0); % numerical solution
+        [Pc,~] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0); % numerical solution
     else
         L1 = IF; % interface point
-        x1 = IB.L0:0.1:L1; % spatial nodes (L0 <= x <= L1)
-        x2 = L1:0.1:OB.L2; % spatial nodes (L1 <= x <= L2)
-        [c_avg,~] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
+        x1 = linspace(IB.L0,L1,ceil(Nr*L1/100)); % spatial nodes (L0 <= x <= L1)
+        x2 = linspace(L1,OB.L2,ceil(Nr*(100-L1)/100)); % spatial nodes (L1 <= x <= L2)
+        [Pc,~] = heterogeneous_continuum_model(d,D,IB,OB,x1,x2,Nt,T,c0); % numerical solution
     end
+    fprintf("Continuum model: ")
+    toc
 
     % Stochastic model
+    tic
     if IF == 0 % homogeneous problem
         minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P);
         minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P);
@@ -54,6 +58,8 @@ for d = 1
         minMaxNp1 = compute_min_max_intervals(Ns,d,IB,OB,Np1,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
         minMaxNp2 = compute_min_max_intervals(Ns,d,IB,OB,Np2,T,tau,delta,P,L1,parts); % compute the min-max intervals (two layer)
     end
+    fprintf("Stochastic model: ")
+    toc
 
     ts = 0:tau:T; % stochastic model time points
     tSetup = [ts ts(end:-1:1)]; % time points setup for plotting
@@ -61,41 +67,30 @@ for d = 1
     minMaxSetupNp2 = [minMaxNp2(1,:) minMaxNp2(2,end:-1:1)]; % confidence intervals (N2 = 500)
 
     % Surrogate models
+    tic
     tc = 0:T/Nt:T; % continuum model time points
     if isscalar(D) % three surrogate models for homogeneous media
         % Single-parameter exponential model
-        [c_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'single',IF,tc);
-        err = mean(abs(c_avg - c_exp{1})); % mean absolute error
+        [s_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'one-term',IF,tc);
+        err = mean(abs(Pc - s_exp{1})); % mean absolute error
 
         % Scientific notation for plotting %
-        lambda_strTemp = sprintf('%0.2e',lambda);
-        lambda_str = strcat(lambda_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda_strTemp(6:end))),'}');
-
         err1_strTemp = sprintf('%0.2e',err);
         err1_str = strcat(err1_strTemp(1:4),' \times 10^{',...
             num2str(str2double(err1_strTemp(6:end))),'}');
         
         % Two-parameter exponential model
-        [c_exp{2},lambda,~] = compute_surrogate_model(d,D,IB,OB,'two',IF,tc);
-        err = mean(abs(c_avg - c_exp{2})); % mean absolute error
+        [s_exp{2},lambda12,~] = compute_surrogate_model(d,D,IB,OB,'two-term',IF,tc);
+        err = mean(abs(Pc - s_exp{2})); % mean absolute error
 
         % Scientific notation for plotting
-        lambda1_strTemp = sprintf('%0.2e',lambda(1));
-        lambda1_str = strcat(lambda1_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda1_strTemp(6:end))),'}');
-        
-        lambda2_strTemp = sprintf('%0.2e',lambda(2));
-        lambda2_str = strcat(lambda2_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda2_strTemp(6:end))),'}');
-
         err2_strTemp = sprintf('%0.2e',err);
         err2_str = strcat(err2_strTemp(1:4),' \times 10^{',...
             num2str(str2double(err2_strTemp(6:end))),'}');
         
          % Three-parameter exponential model
-        [c_exp{3},~,theta] = compute_surrogate_model(d,D,IB,OB,'weight',IF,tc);
-        err = mean(abs(c_avg - c_exp{3})); % mean absolute error
+        [s_exp{3},lambdaw,theta] = compute_surrogate_model(d,D,IB,OB,'weighted',IF,tc);
+        err = mean(abs(Pc - s_exp{3})); % mean absolute error
     
         % Scientific notation for plotting
         err3_strTemp = sprintf('%0.2e',err);
@@ -104,35 +99,25 @@ for d = 1
 
     else % Two surrogate models for heterogeneous media
         % Single-parameter exponential model
-        [c_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'single',IF,tc);
-        err = mean(abs(c_avg - c_exp{1})); % mean absolute error
+        [s_exp{1},lambda,~] = compute_surrogate_model(d,D,IB,OB,'one-term',IF,tc);
+        err = mean(abs(Pc - s_exp{1})); % mean absolute error
 
         % Scientific notation for plotting
-        lambda_strTemp = sprintf('%0.2e',lambda);
-        lambda_str = strcat(lambda_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda_strTemp(6:end))),'}');
-
         err1_strTemp = sprintf('%0.2e',err);
         err1_str = strcat(err1_strTemp(1:4),' \times 10^{',...
             num2str(str2double(err1_strTemp(6:end))),'}');
         
         % Two-parameter exponential model
-        [c_exp{2},lambda,~] = compute_surrogate_model(d,D,IB,OB,'two',IF,tc);
-        err = mean(abs(c_avg - c_exp{2})); % mean absolute error
+        [s_exp{2},lambda12,~] = compute_surrogate_model(d,D,IB,OB,'two-term',IF,tc);
+        err = mean(abs(Pc - s_exp{2})); % mean absolute error
 
         % Scientific notation for plotting
-        lambda1_strTemp = sprintf('%0.2e',lambda(1));
-        lambda1_str = strcat(lambda1_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda1_strTemp(6:end))),'}');
-        
-        lambda2_strTemp = sprintf('%0.2e',lambda(2));
-        lambda2_str = strcat(lambda2_strTemp(1:4),' \times 10^{',...
-            num2str(str2double(lambda2_strTemp(6:end))),'}');
-
         err2_strTemp = sprintf('%0.2e',err);
         err2_str = strcat(err2_strTemp(1:4),' \times 10^{',...
             num2str(str2double(err2_strTemp(6:end))),'}');
     end
+    fprintf("Surrogate models: ")
+    toc
    
     % Final time (scientific notation)
     T_strTemp = sprintf('%0.2e',T);
@@ -158,13 +143,13 @@ for d = 1
     minMaxPlotNp2.EdgeColor = 'none';
 
     % Spatial average
-    plot(tc,c_avg,'LineWidth',6.5,'Color','#05386B')
+    plot(tc,Pc,'LineWidth',6.5,'Color','#05386B')
 
     % Plot surrogate models with parameters
-    plot(tc,c_exp{1},'LineWidth',6.5,'Color','#7B4288')
-    plot(tc,c_exp{2},'LineWidth',6.5,'LineStyle','--','Color','#FF764A')
+    plot(tc,s_exp{1},'LineWidth',6.5,'Color','#7B4288')
+    plot(tc,s_exp{2},'LineWidth',6.5,'LineStyle','--','Color','#FF764A')
     if isscalar(D)
-        plot(tc,c_exp{3},'LineWidth',6.5,'LineStyle','--','Color','#F5BF03')
+        plot(tc,s_exp{3},'LineWidth',6.5,'LineStyle','--','Color','#F5BF03')
         text(0.4*T,0.9,['Case ',Case],'FontSize',50,'Interpreter','latex')
         text(0.4*T,0.78,strcat('$\varepsilon_1 = ',err1_str,'$'),...
             'FontSize',40,'Interpreter','latex')

@@ -1,4 +1,4 @@
-function [c_avg,c] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
+function [Pc,c] = homogeneous_continuum_model(d,D,IB,OB,x,Nt,T,c0)
 % NUMERICAL_SOLUTION computes the numerical solution for diffusion out of a
 % d-dimensional, radially-symmetric object using a finite volume scheme
 % with Crank Nicolson time-stepping. 
@@ -73,30 +73,32 @@ else % in all other cases, solve for all nodes
 end
 
 c(:,1) = c0; % initial condition
-Atilde = I - dt/2*A;
+A = sparse(A);
+Atilde1 = I - dt/2*A;
+Atilde2 = I + dt/2*A;
 
 for n = 1:Nt % Solve at each time step
-    btilde = (I + dt/2*A)*c(:,n);
+    btilde = Atilde2*c(:,n);
 
     % Incorporate Dirichlet conditions if necessary
     if b0 == 0
-        Atilde(1,:) = [1 zeros(1,Nr-1)];
+        Atilde1(1,:) = [1 zeros(1,Nr-1)];
         btilde(1) = 0;
     end
 
     if b1 == 0
         % Only solving for c2,...,cN if l0 = 0 and d > 1
         if (x(1) == 0) && (d > 1)
-            Atilde(Nr-1,:) = [zeros(1,Nr-2) 1];
+            Atilde1(Nr-1,:) = [zeros(1,Nr-2) 1];
             btilde(Nr-1) = 0;
         else
-            Atilde(Nr,:) = [zeros(1,Nr-1) 1];
+            Atilde1(Nr,:) = [zeros(1,Nr-1) 1];
             btilde(Nr) = 0;
         end
     end
 
     % Solve
-    c(:,n+1) = Atilde \ btilde;
+    c(:,n+1) = Atilde1 \ btilde;
 end
 
 % For a disc/sphere node 1 is equivalent to node 2
@@ -108,12 +110,12 @@ end
 dx = (L1 - L0)/(Nr-1);
 
 % Compute spatial average using trapezoidal rule
-c_avg = (x(1)^(d-1)*c(1,:) + x(Nr)^(d-1)*c(Nr,:))/2; % first and last terms
+Pc = (x(1)^(d-1)*c(1,:) + x(Nr)^(d-1)*c(Nr,:))/2; % first and last terms
 
 for i = 2:Nr-1 % summation terms
-    c_avg = c_avg + x(i)^(d-1)*c(i,:);
+    Pc = Pc + x(i)^(d-1)*c(i,:);
 end
 
-c_avg = d/(L1^d - L0^d) * dx * c_avg; % spatial average
+Pc = d/(L1^d - L0^d) * dx * Pc; % spatial average
 
 end

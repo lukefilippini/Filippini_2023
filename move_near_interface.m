@@ -37,7 +37,7 @@ if d == 1 % one dimension (line)
     for k = 1:2
         posHalf = pos + delta/2*shift(k);
 
-        if posHalf < l2
+        if posHalf < L1
             meanProb = meanProb + P(1)/2;
         else
             meanProb = meanProb + P(2)/2;

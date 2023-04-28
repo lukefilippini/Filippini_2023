@@ -74,7 +74,7 @@ for i = 1:Np % for each particle
         
         % Boundary conditions
         if r >= L1 % particle has crossed outer boundary
-            Ps(i,j+1) = atBoundary(outerBound,P1); % determine whether the particle is absorbed or not
+            Ps(i,j+1) = at_boundary(outerBound,P1); % determine whether the particle is absorbed or not
             
             if isequal(outerBound,'reflect')
                 if d == 1
@@ -89,7 +89,7 @@ for i = 1:Np % for each particle
                 end
             end
         elseif r <= L0 % particle has crossed inner boundary
-            Ps(i,j+1) = atBoundary(innerBound,P0); % determine whether the particle is absorbed or not
+            Ps(i,j+1) = at_boundary(innerBound,P0); % determine whether the particle is absorbed or not
 
             if isequal(innerBound,'reflect')
                 if d == 1

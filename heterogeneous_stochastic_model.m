@@ -92,7 +92,11 @@ for i = 1:Np
 
             Ps(i,j+1) = 1;
         else % Determine whether the particle away from the interface should move
-            r = sqrt(sum(pos(i,:).^2)); % distance from origin
+            if d > 1 
+                r = sqrt(sum(pos(i,:).^2)); % distance from origin
+            else
+                r = pos(i);
+            end
 
             if r < L1
                 particleMoves = P(1) > rand; % layer L0 < x <= l2
@@ -118,15 +122,21 @@ for i = 1:Np
                 end
             end
 
-            % Calculate norm
-            r = sqrt(sum(pos(i,:).^2)); % new radial position
+            % Calculate new radial position
+            if d > 1
+                r = sqrt(sum(pos(i,:).^2));
+            else
+                r = pos(i);
+            end
         
             % Boundary conditions
             if r >= L2 % particle has crossed outer boundary
-                Ps(i,j+1) = atBoundary(outerBound,P1); % determine whether the particle is absorbed or not
+                Ps(i,j+1) = at_boundary(outerBound,P1); % determine whether the particle is absorbed or not
                 
                 if isequal(outerBound,'reflect')
-                    if d == 2
+                    if d == 1
+                        pos(i) = pos(i) - delta; % shift position back to the left
+                    elseif d == 2
                         pos(i,1) = pos(i,1) - delta*cos(theta); % keep the same x-coordinate
                         pos(i,2) = pos(i,2) - delta*sin(theta); % keep the same y-coordinate
                     else
@@ -136,16 +146,18 @@ for i = 1:Np
                     end
                 end
             elseif r <= L0 % particle has crossed inner boundary
-                Ps(i,j+1) = atBoundary(innerBound,P0); % determine whether the particle is absorbed or not
+                Ps(i,j+1) = at_boundary(innerBound,P0); % determine whether the particle is absorbed or not
     
                 if isequal(innerBound,'reflect')
-                    if d == 2
-                        pos(i,1) = pos(i,1) - delta*cos(theta);
-                        pos(i,2) = pos(i,2) - delta*sin(theta);
+                    if d == 1
+                        pos(i) = pos(i) + delta; % shif the position back to the right
+                    elseif d == 2
+                        pos(i,1) = pos(i,1) - delta*cos(theta); % keep the same x-coordinate
+                        pos(i,2) = pos(i,2) - delta*sin(theta); % keep the same y-coordinate
                     else
-                        pos(i,1) = pos(i,1) - delta*cos(theta)*sin(phi);
-                        pos(i,2) = pos(i,2) - delta*sin(theta)*sin(phi);
-                        pos(i,3) = pos(i,3) - delta*cos(phi);
+                        pos(i,1) = pos(i,1) - delta*cos(theta)*sin(phi); % keep the same x-coordiante
+                        pos(i,2) = pos(i,2) - delta*sin(theta)*sin(phi); % keep the same y-coordiante
+                        pos(i,3) = pos(i,3) - delta*cos(phi); % keep the same z-coordinate
                     end
                 end
             else
