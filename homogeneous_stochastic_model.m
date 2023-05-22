@@ -36,7 +36,7 @@ r = (rand(Np,1)*(L1^d - L0^d) + L0^d).^(1/d); % initial radial position
 if d > 1
     theta = 2*pi*rand; % initialize all angular positions
     if d == 3
-        phi = acos(1 - 2*rand); % initialize phi
+        phi = acos(1 - 2*rand(Np,1)); % initialize phi
         pos(:,1) = r .* cos(theta) .* sin(phi); % initial x-coordinates
         pos(:,2) = r .* sin(theta) .* sin(phi); % initial y-coordinates
         pos(:,3) = r .* cos(phi); % initial z-coordinates

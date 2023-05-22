@@ -10,7 +10,7 @@ clc, clear, close all
 % 'F' - disc/sphere with absorbing outer boundary (two layers)
 % 'G' - disc/sphere with semi-absorbing outer boundary (two layers)
 
-Case = 'F'; % case type
+Case = 'C'; % case type
 
 % Model parameters
 Nr = 501; % no. of spatial nodes (homogeneous continuum model)
@@ -175,7 +175,7 @@ for d = 1
         end
     end
 
-    ylabel('$\mathcal{P}\left(t\right)$','FontSize',20,'Interpreter','latex')
+    ylabel('$\mathcal{P}(t)$','FontSize',20,'Interpreter','latex')
     xlim([0,T]), ylim([0,1])
 
     % Axis
