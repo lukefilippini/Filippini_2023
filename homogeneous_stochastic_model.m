@@ -34,7 +34,7 @@ outerBound = OB.outerBound; % outer boundary condition
 % Initial distribution
 r = (rand(Np,1)*(L1^d - L0^d) + L0^d).^(1/d); % initial radial position
 if d > 1
-    theta = 2*pi*rand; % initialize all angular positions
+    theta = 2*pi*rand(Np,1); % initialize all angular positions
     if d == 3
         phi = acos(1 - 2*rand(Np,1)); % initialize phi
         pos(:,1) = r .* cos(theta) .* sin(phi); % initial x-coordinates

@@ -24,7 +24,7 @@ models = {'one-term','two-term','weighted'}; % surrogate model types
 s_exp = cell(3,1); % array for surrogate models
 
 % Test cases for two and three dimensions (radially-symmetric geometries)
-for d = 1
+for d = 2
     % Test case parameters
     [P,IB,OB,IF] = get_case_parameters(Case,delta);
 
@@ -186,4 +186,3 @@ for d = 1
     %axLab = get(gca,'XLabel'); axLab.Position = axLab.Position - 0.2;
     set(gcf,'Position',[1,49,1100,878])
 end
-

@@ -37,10 +37,10 @@ outerBound = OB.outerBound; % outer boundary condition
 % Initial distribution
 r = (rand(Np,1)*(L2^d - L0^d) + L0^d).^(1/d); % initial radial position
 if d > 1
-    theta = 2*pi*rand; % initialize all angular positions
+    theta = 2*pi*rand(Np,1); % initialize all angular positions
     thetaAll = (2*pi*((1:parts) - 1) ./ parts)'; % all possible theta choices for movement near interface
     if d == 3
-        phi = acos(1 - 2*rand); % initialize phi
+        phi = acos(1 - 2*rand(Np,1)); % initialize phi
         phiAll = acos(1 - 2*((1:parts) - 1) / parts)'; % all possible phi choices for movement near interface
         pos(:,1) = r .* cos(theta) .* sin(phi); % initialize x-coordinates
         pos(:,2) = r .* sin(theta) .* sin(phi); % initialize y-coordinates

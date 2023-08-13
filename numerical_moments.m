@@ -26,7 +26,12 @@ for d = 1:3
     plot(r,M0c,'LineStyle','--','LineWidth',6.5,'Color','#FF764A')
     y = ylabel('$\vspace{1cm}M_0(r)$','FontSize',20,'Interpreter','latex');
     xlim([0,L1]), ylim([0,12000])
-    legend('Numerical','Analytical','Interpreter','Latex')
+    [legh,objh] = legend('Numerical','Analytical','Interpreter','Latex',...
+        'FontSize',40,'Location','Northeast','box','off');
+    lineh = findobj(objh,'type','line');
+    set(lineh(3),'LineStyle','--')
+    set(lineh(4),'LineStyle','--')
+    set(legend,'position',[0.47 0.7 0.8 0.2])
 
     % Axis
     axis square
@@ -65,7 +70,12 @@ for d = 1:3
     y = ylabel('$\vspace{1cm}M_1(r)$','FontSize',20,'Interpreter','latex');
     xlim([0,L1]), ylim([0,1.1*max(M1(1,:))])
     if d == 1
-        legend('Numerical','Analytical','Interpreter','Latex')
+        [legh,objh] = legend('Numerical','Analytical','Interpreter','Latex',...
+        'FontSize',40,'Location','Northeast','box','off');
+        lineh = findobj(objh,'type','line');
+        set(lineh(3),'LineStyle','--')
+        set(lineh(4),'LineStyle','--')
+        set(legend,'position',[0.47 0.7 0.8 0.2])
     end
 
     % Axis
